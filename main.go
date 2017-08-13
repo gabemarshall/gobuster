@@ -82,7 +82,7 @@ type State struct {
 	StatusCodes    IntSet
 	Threads        int
 	Url            string
-	UseSlash       bool
+	UseSlash       string
 	UserAgent      string
 	Username       string
 	Verbose        bool
@@ -265,7 +265,7 @@ func ParseCmdLine() *State {
 	flag.BoolVar(&s.Expanded, "e", false, "Expanded mode, print full URLs")
 	flag.BoolVar(&s.NoStatus, "n", false, "Don't print status codes")
 	flag.BoolVar(&s.IncludeLength, "l", false, "Include the length of the body in the output (dir mode only)")
-	flag.BoolVar(&s.UseSlash, "f", false, "Append a forward-slash to each directory request (dir mode only)")
+	flag.StringVar(&s.UseSlash, "f", "", "Append a forward-slash to each directory request (dir mode only)")
 	flag.BoolVar(&s.WildcardForced, "fw", false, "Force continued operation when wildcard found")
 	flag.BoolVar(&s.InsecureSSL, "k", false, "Skip SSL certificate verification")
 
@@ -602,9 +602,12 @@ func ProcessDnsEntry(s *State, word string, resultChan chan<- Result) {
 
 func ProcessDirEntry(s *State, word string, resultChan chan<- Result) {
 	suffix := ""
-	if s.UseSlash {
+	if (s.UseSlash == "") {
 		suffix = "/"
+	} else {
+		suffix = s.UseSlash
 	}
+	
 
 	// Try the DIR first
 	dirResp, dirSize := GoGet(s, s.Url, word+suffix, s.Cookies)
@@ -793,7 +796,7 @@ func ShowConfig(state *State) {
 				fmt.Printf("[+] Extensions   : %s\n", strings.Join(state.Extensions, ","))
 			}
 
-			if state.UseSlash {
+			if (state.UseSlash == "") {
 				fmt.Printf("[+] Add Slash    : true\n")
 			}
 
